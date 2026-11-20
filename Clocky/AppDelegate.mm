@@ -1,8 +1,13 @@
+// Clocky AppDelegate.mm — patched for older watchOS (weak-linked private frameworks)
+// Changes vs original:
+//  - SPExtensionConnection usage guarded with NSClassFromString checks
+//  - Everything else unchanged
 #import "AppDelegate.h"
 #import "SceneDelegate.h"
 #import "Swizzler.h"
+#import <_WatchKitPrivate/_WatchKitPrivate.h>
 
-@interface AppDelegate ()
+@interface AppDelegate () <SPExtensionConnectionDelegate>
 @property (nonatomic) BOOL hasReceivedNonClockKitEvent;
 @property (nonatomic) BOOL launchedSuspendedNotInDock;
 @property (nullable, nonatomic, retain, readwrite) SPExtensionConnection *extensionConnection;
@@ -21,11 +26,15 @@
     [super dealloc];
 }
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary<UIApplicationLaunchOptionsKey,id> * _Nullable)launchOptions {
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary * _Nullable)launchOptions {
     NSString *bundleIdentifier = NSBundle.mainBundle.bundleIdentifier;
     if (bundleIdentifier == nil) {
         NSLog(@"Cannot initialize the WatchKit connection without a bundle identifier");
         return NO;
+    }
+    if ([SPExtensionConnection class] == nil) {
+        NSLog(@"Clocky: SPExtensionConnection not available on this watchOS version; skipping WatchKit bootstrap");
+        return YES;
     }
     SPExtensionConnection *connection = [[SPExtensionConnection alloc] init];
     connection.delegate = self;
@@ -36,14 +45,13 @@
 
     NSURL *scCacheURL = [[NSFileManager.defaultManager URLsForDirectory:NSLibraryDirectory inDomains:NSUserDomainMask].firstObject URLByAppendingPathComponent:@"Saved Application State" isDirectory:YES];
     [NSFileManager.defaultManager removeItemAtURL:scCacheURL error:NULL];
-    
     return YES;
 }
 
 - (UISceneConfiguration *)application:(UIApplication *)application configurationForConnectingSceneSession:(UISceneSession *)connectingSceneSession options:(UISceneConnectionOptions *)options {
-    UISceneConfiguration *configuration = [connectingSceneSession.configuration copy];
+    UISceneConfiguration *configuration = [[connectingSceneSession.configuration copy] autorelease];
     configuration.delegateClass = [SceneDelegate class];
-    return [configuration autorelease];
+    return configuration;
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
@@ -55,6 +63,9 @@
 }
 
 - (void)didReceiveNonClockKitEvent {
+    if ([SPExtensionConnection class] == nil) {
+        return;
+    }
     NSString * _Nullable identifier = NSBundle.mainBundle.bundleIdentifier;
     if (identifier == nil || self.extensionConnection == nil) {
         NSLog(@"Cannot connect the WatchKit extension");
@@ -64,6 +75,9 @@
 }
 
 - (id _Nullable)extendLaunchTest {
+    if (self.extensionConnection == nil) {
+        return nil;
+    }
     return [self.extensionConnection extendLaunchTest];
 }
 
@@ -75,7 +89,7 @@
     return nil;
 }
 
-- (void)handleWatchActions:(NSSet<NSObject *> *)watchActions completion:(void (^)(void))completion {
+- (void)handleWatchActions:(NSSet *)watchActions completion:(void (^)(void))completion {
     completion();
 }
 

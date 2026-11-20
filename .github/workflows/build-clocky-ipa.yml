@@ -1,0 +1,52 @@
+name: Build Clocky unsigned IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        run: |
+          ls /Applications | grep -i xcode || true
+          sudo xcode-select -s "/Applications/Xcode_27.3.app/Contents/Developer" || \
+          sudo xcode-select -s "/Applications/Xcode.app/Contents/Developer"
+          xcodebuild -version
+
+      - name: Build iPhone app + embedded Watch app (no signing, weak-linked private frameworks)
+        run: |
+          set -euo pipefail
+          derived="$RUNNER_TEMP/DerivedData"
+          xcodebuild \
+            -project Clocky.xcodeproj \
+            -scheme ClockyCompanion \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$derived" \
+            COMPANION_BUNDLE_IDENTIFIER="com.example.Clocky" \
+            OTHER_LDFLAGS='$(inherited) -weak_framework WatchKit -weak_framework NanoTimeKit -weak_framework PepperUICore -weak_framework ClockKit -weak_framework _UIKitPrivate' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            build
+
+      - name: Package unsigned IPA
+        run: |
+          set -euo pipefail
+          app="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/ClockyCompanion.app"
+          test -d "$app"
+          test -d "$app/Watch"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload" build/ipa
+          ditto "$app" "$RUNNER_TEMP/ipa/Payload/ClockyCompanion.app"
+          ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/ipa/Payload" build/ipa/Clocky.ipa
+          ls -la build/ipa
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Clocky-weaklink-ipa
+          path: build/ipa/Clocky.ipa
