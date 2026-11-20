@@ -33,7 +33,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath "$derived" \
             COMPANION_BUNDLE_IDENTIFIER="com.example.Clocky" \
-            OTHER_LDFLAGS='$(inherited) -weak_framework WatchKit -weak_framework NanoTimeKit -weak_framework PepperUICore -weak_framework ClockKit -weak_framework _UIKitPrivate' \
+            'OTHER_LDFLAGS[sdk=watchos*]=$(inherited) -weak_framework WatchKit -weak_framework NanoTimeKit -weak_framework PepperUICore -weak_framework ClockKit -weak_framework _UIKitPrivate' \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY='' \
