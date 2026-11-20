@@ -34,6 +34,7 @@ int main(int argc, char * argv[]) {
         [pool release];
         return 1;
     }
+    NSString *delegateClassName = NSStringFromClass([AppDelegate class]);
     int result = UIApplicationMain(argc, argv, NSStringFromClass(principalClass), delegateClassName);
     [pool release];
     return result;
