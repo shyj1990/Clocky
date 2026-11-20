@@ -55,7 +55,7 @@ static BOOL CanToggleCollectionType(CLKDevice *device, unsigned *originalOut) {
 
 // Runs |block| while the device temporarily reports the Hermès collection
 // type. Returns block's result, or nil when the switch is not possible.
-static id WithHermesCollectionType(CLKDevice *device, id (^)(void) block) {
+static id WithHermesCollectionType(CLKDevice *device, id (^block)(void)) {
     unsigned original = 0;
     if (!CanToggleCollectionType(device, &original)) {
         return nil;
