@@ -5,16 +5,21 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: xcode-27
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select latest Xcode
+      - name: Select Xcode 27
         run: |
           ls /Applications | grep -i xcode || true
-          sudo xcode-select -s "/Applications/Xcode_27.3.app/Contents/Developer" || \
-          sudo xcode-select -s "/Applications/Xcode.app/Contents/Developer"
+          if [ -d "/Applications/Xcode_27.3.app" ]; then
+            sudo xcode-select -s "/Applications/Xcode_27.3.app/Contents/Developer"
+          else
+            for d in /Applications/Xcode_27*.app /Applications/Xcode.app; do
+              if [ -d "$d" ]; then sudo xcode-select -s "$d/Contents/Developer"; break; fi
+            done
+          fi
           xcodebuild -version
 
       - name: Build iPhone app + embedded Watch app (no signing, weak-linked private frameworks)
