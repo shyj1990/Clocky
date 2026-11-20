@@ -1,6 +1,7 @@
 #import "FaceViewController.h"
 #import "FaceBundleListViewController.h"
 #import "Defines.h"
+#import "HermesBundles.h"
 #import <NanoTimeKit/NanoTimeKit.h>
 #import <CoreMotion/CoreMotion.h>
 
@@ -46,7 +47,7 @@
 
     __block __kindof NTKFaceBundle * _Nullable firstBundle = nil;
     __block __kindof NTKFaceBundle * _Nullable matchedBundle = nil;
-    
+
     [NTKFaceBundleManager.sharedManager enumerateFaceBundlesOnDevice:device includingLegacy:YES withBlock:^(__kindof NTKFaceBundle *faceBundle) {
         if (firstBundle == nil) {
             firstBundle = [faceBundle retain];
@@ -58,6 +59,18 @@
             }
         }
     }];
+
+    // Hermès bundles are not returned by the enumeration; if the saved face
+    // is one of them, fetch it with the temporary collection switch.
+    if (matchedBundle == nil && selectedFaceIdentifier != nil && [HermesBundles isHermesBundleIdentifier:selectedFaceIdentifier]) {
+        for (__kindof NTKFaceBundle *faceBundle in [HermesBundles hermesBundlesForDevice:device]) {
+            NSString * _Nullable identifier = [[faceBundle class] identifier];
+            if ([identifier isEqualToString:selectedFaceIdentifier]) {
+                matchedBundle = [faceBundle retain];
+                break;
+            }
+        }
+    }
     
     __kindof NTKFaceBundle * _Nullable initialBundle = matchedBundle != nil ? matchedBundle : firstBundle;
     if (initialBundle != nil) {
@@ -82,7 +95,7 @@
     }
     
     CLKDevice *device = CLKDevice.currentDevice;
-    __kindof NTKFace * _Nullable face = [faceBundle defaultFaceForDevice:device];
+    __kindof NTKFace * _Nullable face = [HermesBundles defaultFaceForDevice:device fromBundle:faceBundle];
     if (face == nil) {
         NSLog(@"No default face for bundle: %@", faceBundle);
         return;
