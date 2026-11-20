@@ -328,6 +328,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = "$(inherited)";
+				"OTHER_LDFLAGS[sdk=watchos*]" = "$(inherited) -weak_framework WatchKit -weak_framework NanoTimeKit -weak_framework PepperUICore -weak_framework ClockKit -weak_framework _UIKitPrivate";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(COMPANION_BUNDLE_IDENTIFIER).watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -529,6 +530,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = "$(inherited)";
+				"OTHER_LDFLAGS[sdk=watchos*]" = "$(inherited) -weak_framework WatchKit -weak_framework NanoTimeKit -weak_framework PepperUICore -weak_framework ClockKit -weak_framework _UIKitPrivate";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(COMPANION_BUNDLE_IDENTIFIER).watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
