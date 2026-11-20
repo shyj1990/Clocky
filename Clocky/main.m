@@ -25,11 +25,14 @@ int main(int argc, char * argv[]) {
 
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     Class principalClass = spApplicationClass;
-    NSString *delegateClassName = NSStringFromClass([AppDelegate class]);
     if (principalClass == nil) {
-        // Fall back to plain UIApplication so the process survives and can be diagnosed.
-        NSLog(@"Clocky: falling back to plain UIApplication");
-        principalClass = [UIApplication class];
+        // Runtime lookup only — no static link dependency on public UIKit.
+        principalClass = NSClassFromString(@"UIApplication");
+    }
+    if (principalClass == nil) {
+        NSLog(@"Clocky: neither SPApplication nor UIApplication is available on this watchOS; exiting");
+        [pool release];
+        return 1;
     }
     int result = UIApplicationMain(argc, argv, NSStringFromClass(principalClass), delegateClassName);
     [pool release];
