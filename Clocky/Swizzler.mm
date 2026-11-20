@@ -5,7 +5,7 @@
 //    kill the app at startup on watchOS versions missing these APIs)
 #import "Swizzler.h"
 #import <Foundation/Foundation.h>
-#import <ClockKit/ClockKit.h>
+#include <objc/runtime.h>
 
 namespace swizzler {
 

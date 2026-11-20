@@ -3,7 +3,6 @@
 //  1. spUtils_setRunningExtensionlessWKApp is now weak_import + NULL check
 //  2. SPApplication existence is checked before use; graceful fallback
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 #import <_UIKitPrivate/_UIKitPrivate.h>
 #import <_WatchKitPrivate/_WatchKitPrivate.h>
 #import "AppDelegate.h"
