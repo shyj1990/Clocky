@@ -1,6 +1,7 @@
 #import "FaceBundleListViewController.h"
 #import "FaceCategory.h"
 #import "FacePageViewController.h"
+#import "HermesBundles.h"
 #include <assert.h>
 
 @interface FaceBundleListViewController () <FacePageViewControllerDelegate>
@@ -50,7 +51,8 @@
     for (NSUInteger index = 0; index < names.count; index++) {
         [groups addObject:[NSMutableArray array]];
     }
-    [NTKFaceBundleManager.sharedManager enumerateFaceBundlesOnDevice:CLKDevice.currentDevice includingLegacy:YES withBlock:^(__kindof NTKFaceBundle *faceBundle) {
+    NSMutableSet<NSString *> *seenIdentifiers = [NSMutableSet set];
+    __block void(^addToGroups)(__kindof NTKFaceBundle *) = ^(__kindof NTKFaceBundle *faceBundle) {
         NSString * _Nullable identifier = [[faceBundle class] identifier];
         NSUInteger categoryIndex = names.count - 1;
         for (NSUInteger index = 0; identifier != nil && index + 1 < identifiers.count; index++) {
@@ -59,8 +61,19 @@
                 break;
             }
         }
+        if (identifier != nil) {
+            if ([seenIdentifiers containsObject:identifier]) return;
+            [seenIdentifiers addObject:identifier];
+        }
         [groups[categoryIndex] addObject:faceBundle];
-    }];
+    };
+    [NTKFaceBundleManager.sharedManager enumerateFaceBundlesOnDevice:CLKDevice.currentDevice includingLegacy:YES withBlock:addToGroups];
+    // Hermès bundles are gated by the device collection type and are not
+    // returned by the enumeration above; fetch them with a temporary
+    // in-process collection switch (see HermesBundles).
+    for (__kindof NTKFaceBundle *faceBundle in [HermesBundles hermesBundlesForDevice:CLKDevice.currentDevice]) {
+        addToGroups(faceBundle);
+    }
     NSMutableArray<FaceCategory *> *categories = [[NSMutableArray alloc] initWithCapacity:names.count];
     for (NSUInteger index = 0; index < names.count; index++) {
         if (groups[index].count == 0) continue;
