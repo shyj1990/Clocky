@@ -1,4 +1,5 @@
 #import "FacePreviewViewController.h"
+#import "HermesBundles.h"
 
 @interface FacePreviewViewController ()
 @property (nonatomic, retain, direct) __kindof NTKFaceBundle *faceBundle;
@@ -11,7 +12,7 @@
     self = [super init];
     if (self != nil) {
         self.faceBundle = faceBundle;
-        self.title = [faceBundle galleryTitleForDevice:CLKDevice.currentDevice] ?: [[faceBundle class] identifier] ?: NSStringFromClass([faceBundle class]);
+        self.title = [HermesBundles galleryTitleForDevice:CLKDevice.currentDevice fromBundle:faceBundle] ?: [[faceBundle class] identifier] ?: NSStringFromClass([faceBundle class]);
     }
     return self;
 }
@@ -41,7 +42,7 @@
 
 - (void)loadFaceViewController __attribute__((objc_direct)) {
     if (self.faceViewController != nil) return;
-    NTKFace * _Nullable face = [self.faceBundle defaultFaceForDevice:CLKDevice.currentDevice];
+    NTKFace * _Nullable face = [HermesBundles defaultFaceForDevice:CLKDevice.currentDevice fromBundle:self.faceBundle];
     if (face == nil) {
         NSLog(@"No default face for bundle: %@", self.faceBundle);
         return;
