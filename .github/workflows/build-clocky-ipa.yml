@@ -26,6 +26,7 @@ jobs:
         run: |
           set -euo pipefail
           derived="$RUNNER_TEMP/DerivedData"
+          WEAKFLAGS='OTHER_LDFLAGS[sdk=watchos*]=$(inherited) -weak_framework WatchKit -weak_framework NanoTimeKit -weak_framework PepperUICore -weak_framework ClockKit -weak_framework _UIKitPrivate'
           xcodebuild \
             -project Clocky.xcodeproj \
             -scheme ClockyCompanion \
@@ -33,7 +34,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath "$derived" \
             COMPANION_BUNDLE_IDENTIFIER="com.example.Clocky" \
-            'OTHER_LDFLAGS[sdk=watchos*]=$(inherited) -weak_framework WatchKit -weak_framework NanoTimeKit -weak_framework PepperUICore -weak_framework ClockKit -weak_framework _UIKitPrivate' \
+            "$WEAKFLAGS" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY='' \
